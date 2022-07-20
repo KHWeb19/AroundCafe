@@ -5,6 +5,7 @@ import com.example.demo.member.entity.Member;
 import com.example.demo.member.repository.MemberRepository;
 import com.example.demo.mypage.cafe.entity.Cafe;
 import com.example.demo.mypage.cafe.repository.cafe.CafeRepository;
+import com.example.demo.review.dto.ReviewDto;
 import com.example.demo.review.dto.ReviewResponseDto;
 import com.example.demo.review.entity.Review;
 import com.example.demo.review.entity.ReviewLike;
@@ -49,18 +50,17 @@ public class ReviewServiceImpl implements ReviewService{
     @Override
     public void register(Review review,@RequestParam(required = false) MultipartFile file, Integer membNo) throws Exception {
         Member member = memberRepository.findById(Long.valueOf(membNo)).orElseGet(null);
+        String fileName = null;
 
         if (file != null) {
 
             UUID uuid = UUID.randomUUID();
-            String fileName = uuid + "_" +file.getOriginalFilename();
+             fileName = uuid + "_" +file.getOriginalFilename();
 
             FileOutputStream saveFile = new FileOutputStream("../../cafefront/around_cafe/src/assets/review/" + fileName);
 
             saveFile.write(file.getBytes());
             saveFile.close();
-
-            review.setFileName(fileName);
 
             member.setMemPoint(member.getMemPoint() + 150);
         }
@@ -68,10 +68,16 @@ public class ReviewServiceImpl implements ReviewService{
         if(review.getStar_score() == null) {
             review.setStar_score(0);
         }
+        Review reviewDto = Review.builder()
 
-        review.setMemberInfo(member);
+                .star_score(review.getStar_score())
+                .review_content(review.getReview_content())
+                .fileName(review.getFileName())
+                .cafeNum(review.getCafeNum())
+                .member(member) //reviewd의 @builer member
+                .build();
 
-        repository.save(review);
+        repository.save(reviewDto);
 
     }
 
